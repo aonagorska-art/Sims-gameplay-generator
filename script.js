@@ -27,12 +27,26 @@
     const p = document.createElement('p');
     p.textContent = item.text;
     parent.append(p);
-    if (item.alternative) {
-      const small = document.createElement('small');
-      small.textContent = item.alternative;
-      parent.append(small);
-    }
+    const packs = document.createElement('div');
+    packs.className = 'pack-labels';
+    packs.setAttribute('aria-label', 'Required game content');
+    item.packs.forEach(id => {
+      const pack = data.packs[id];
+      const label = document.createElement('span');
+      label.className = 'pack-label';
+      label.textContent = pack.name + (id === 'base' ? '' : ' · ' + pack.type);
+      packs.append(label);
+    });
+    parent.append(packs);
   }
+  byId('start').addEventListener('click', () => {
+    byId('welcome').hidden = true;
+    byId('setup').hidden = false;
+    byId('empty').hidden = false;
+    document.body.classList.add('started');
+    byId('mode-title').focus({ preventScroll: true });
+    byId('setup').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   function generate() {
     scenario = engine.generate(mode);
     count++;
@@ -95,8 +109,12 @@
     card.append(heading);
     appendDescription(card, item);
     if (item.event) {
-      const event = document.createElement('small');
-      event.textContent = 'Meanwhile: ' + item.event.text + (item.event.alternative ? ' ' + item.event.alternative : '');
+      const event = document.createElement('div');
+      event.className = 'disaster-event';
+      const title = document.createElement('strong');
+      title.textContent = 'MEANWHILE…';
+      event.append(title);
+      appendDescription(event, item.event);
       card.append(event);
     }
     byId('disasters').append(card);

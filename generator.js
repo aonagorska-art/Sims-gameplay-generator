@@ -54,8 +54,11 @@
     return { generate, addDisaster };
   }
   function formatChallenge(data, scenario) {
-    const describe = item => item.text + (item.alternative ? '\n' + item.alternative : '');
-    const parts = ['SIMS GAMEPLAY GENERATOR', 'Because playing normally is apparently not an option.', '\nMODE: ' + data.modes[scenario.mode]];
+    const describe = item => item.text + '\n' + item.packs.map(id => {
+      const pack = data.packs[id];
+      return pack.name + (id === 'base' ? '' : ' · ' + pack.type);
+    }).join(' + ');
+    const parts = ['SIMS GAMEPLAY GENERATOR', '\nMODE: ' + data.modes[scenario.mode]];
     data.sections.forEach(section => parts.push('\n' + section.icon + ' ' + section.label + '\n' + describe(scenario.items[section.key])));
     if (scenario.event) parts.push('\nMEANWHILE…\n' + describe(scenario.event));
     scenario.disasters.forEach((item, i) => parts.push('\n🚨 NEW PROBLEM UNLOCKED #' + (i + 1) + '\n' + describe(item) + (item.event ? '\nMeanwhile: ' + describe(item.event) : '')));

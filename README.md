@@ -6,9 +6,13 @@ This was made to help me generate cool storylines for my Sims.
 
 ## About the app
 
-A gameplay generator for The Sims 4 with three chaos levels, 382 prompts, and stackable disasters. Familiar Townies, skill challenges, basement painters, and no Motherlode.
+A gameplay generator for The Sims 4 with a welcome screen, three chaos levels, 660 prompts, and stackable disasters. Familiar Townies, skill challenges, basement painters, and no Motherlode.
 
 Built with vanilla HTML, CSS, and JavaScript. No backend, accounts, or installation required.
+
+## Start your next save
+
+![Start your next save](docs/screenshots/welcome.png)
 
 ## Choose your chaos
 
@@ -24,6 +28,8 @@ Built with vanilla HTML, CSS, and JavaScript. No backend, accounts, or installat
 
 ## Features
 
+- 278 new ideas covering 21 Expansion Packs, 12 Game Packs and 20 Stuff Packs.
+- A concrete Sims 4 reference and pack label under every prompt.
 - Three modes, from Just Vibing to Remove the Pool Ladder.
 - Eight story ingredients, plus optional events and extra disasters.
 - Shared theme tags prevent repeated objectives across a save and its disasters.
@@ -41,7 +47,7 @@ Upload the project folder to Netlify, or import the repository with an empty bui
 
 ## Project structure
 
-- `data.js` — prompt pools, difficulty tiers, themes, and pack alternatives.
+- `data.js` — prompt pools, difficulty tiers, themes, and pack requirements.
 - `generator.js` — weighted selection and repeat prevention.
 - `script.js` — page interactions and clipboard support.
 - `styles.css` and `index.html` — the interface.
@@ -50,6 +56,6 @@ Upload the project folder to Netlify, or import the repository with an empty bui
 
 Run tests with `node --test tests/generator.test.cjs`.
 
-Some ideas use optional packs. Base-game substitutes are included. If a named Sim is unavailable, choose a similar Townie. Shared themes are curated metadata rather than a complete simulation of every possible game state.
+Some ideas require packs, listed beneath each prompt and included in copied challenges. Kits and Marketplace content are outside this catalogue. See [content notes and official sources](docs/CONTENT-SOURCES.md). If a named Sim is unavailable, choose a similar Townie. Shared themes are curated metadata rather than a complete simulation of every possible game state.
 
 Not affiliated with or endorsed by Electronic Arts or The Sims. 

@@ -80,3 +80,28 @@ test('semantic conflicts reject incompatible goals and rules',()=>{
  assert.equal(SimsGenerator.compatible({tags:['build-now']},[{blocks:['build-now']}]),false);
  assert.equal(SimsGenerator.compatible({tags:['career']},[{tags:['build-now']}]),true);
 });
+test('all 53 packs are represented and every prompt has valid requirements and a game reference',()=>{
+ const packs=Object.entries(data.packs).filter(([id])=>id!=='base');
+ assert.equal(packs.filter(([,p])=>p.type==='Expansion Pack').length,21);
+ assert.equal(packs.filter(([,p])=>p.type==='Game Pack').length,12);
+ assert.equal(packs.filter(([,p])=>p.type==='Stuff Pack').length,20);
+ const prompts=Object.values(data.pools).flat();
+ assert.equal(prompts.length,660);
+ for(const item of prompts){
+  assert.ok(item.packs.length>0,item.id);
+  assert.equal(new Set(item.packs).size,item.packs.length,item.id);
+  assert.ok(item.packs.every(id=>data.packs[id]),item.id);
+  assert.ok(item.reference && item.text.toLowerCase().includes(item.reference.toLowerCase()),item.id);
+  assert.ok(!item.packs.includes('base') || item.packs.length===1,item.id);
+ }
+ for(const [id] of packs) assert.ok(prompts.filter(item=>item.id.startsWith('pack-')&&item.packs.includes(id)).length>=4,id);
+ assert.deepEqual(data.pools.secret.find(x=>x.id==='secret-6').packs,['base']);
+ assert.deepEqual(data.pools.sim.find(x=>x.id==='sim-29').packs,['island','vampires']);
+});
+test('copied challenges include pack names and types for every kind of card',()=>{
+ const engine=SimsGenerator.createEngine(data,rng),save=engine.generate(2);
+ save.event=data.pools.goal.find(x=>x.id==='pack-university-goal');
+ save.disasters=[{...data.pools.goal.find(x=>x.id==='pack-paranormal-goal'),event:data.pools.goal.find(x=>x.id==='pack-crystal-goal')}];
+ const text=SimsGenerator.formatChallenge(data,save);
+ for(const label of ['Discover University · Expansion Pack','Paranormal · Stuff Pack','Crystal Creations · Stuff Pack']) assert.ok(text.includes(label),label);
+});
