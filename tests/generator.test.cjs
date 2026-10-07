@@ -105,3 +105,64 @@ test('copied challenges include pack names and types for every kind of card',()=
  const text=SimsGenerator.formatChallenge(data,save);
  for(const label of ['Discover University · Expansion Pack','Paranormal · Stuff Pack','Crystal Creations · Stuff Pack']) assert.ok(text.includes(label),label);
 });
+
+for (const mode of [0, 1, 2]) test(`mode ${mode}: selected packs filter stories, events and every disaster`, () => {
+ const engine = SimsGenerator.createEngine(data, rng);
+ for (const packs of [[], ['cats'], ['island'], ['island', 'vampires'], ['university', 'magic']]) {
+  for (let n = 0; n < 80; n++) {
+   const save = engine.generate(mode, { packs });
+   const entries = [...Object.values(save.items), save.event].filter(Boolean);
+   for (let i = 0; i < 30; i++) {
+    const extra = engine.addDisaster(save);
+    if (!extra) break;
+    entries.push(extra); if (extra.event) entries.push(extra.event);
+   }
+   for (const entry of entries) assert.ok(SimsGenerator.ownsPacks(entry, packs), entry.id);
+   for (let i = 0; i < entries.length; i++) assert.ok(SimsGenerator.compatible(entries[i], entries.slice(0, i)));
+  }
+ }
+});
+test('cross-pack ideas require all packs; Base Game is always available', () => {
+ const cross = data.pools.sim.find(x => x.id === 'sim-29');
+ assert.equal(SimsGenerator.ownsPacks(cross, ['island']), false);
+ assert.equal(SimsGenerator.ownsPacks(cross, ['island', 'vampires']), true);
+ assert.equal(SimsGenerator.ownsPacks({packs:['base']}, []), true);
+});
+test('kept cards survive repeated rolls, with their themes reserved across the whole story', () => {
+ const engine = SimsGenerator.createEngine(data, rng);
+ for (const packs of [[], ['cats', 'magic'], Object.keys(data.packs)]) {
+  for (const mode of [0, 1, 2]) {
+   let save = engine.generate(mode, {packs});
+   const locked = {goal:save.items.goal, twist:save.items.twist, rule:save.items.rule};
+   for (let n=0; n<80; n++) {
+    const old = save;
+    save = engine.generate(mode, {packs, locked});
+    for (const key of Object.keys(locked)) assert.equal(save.items[key], locked[key]);
+    for (const key of ['sim','start','romance','secret','problem']) assert.notEqual(save.items[key].id, old.items[key].id);
+    const entries = [...Object.values(save.items), save.event].filter(Boolean);
+    for (let i=0; i<entries.length; i++) assert.ok(SimsGenerator.compatible(entries[i], entries.slice(0,i)));
+    assert.deepEqual(save.disasters, []);
+   }
+  }
+ }
+});
+test('ineligible or conflicting locks fail without mutating the existing story', () => {
+ const engine = SimsGenerator.createEngine(data, rng), save = engine.generate(2);
+ const before = JSON.stringify(save);
+ const cross = data.pools.sim.find(x=>x.id==='sim-29');
+ assert.throws(()=>engine.generate(2,{packs:[],locked:{sim:cross}}), /kept idea/);
+ const intense = data.pools.goal.find(x=>x.tier===2);
+ assert.throws(()=>engine.generate(0,{locked:{goal:intense}}), /kept idea/);
+ const goal=data.pools.goal.find(x=>x.text.includes('five cats'));
+ const twist=data.pools.twist.find(x=>x.text.includes('five cats'));
+ assert.throws(()=>engine.generate(2,{locked:{goal,twist}}), /kept idea/);
+ assert.equal(JSON.stringify(save), before);
+ const allKept=engine.generate(2,{locked:save.items});
+ assert.deepEqual(allKept.items, save.items);
+});
+test('an impossible constrained story reports a recoverable error', () => {
+ const a={id:'a', text:'a', tier:0, packs:['base'],themes:['same']};
+ const b={...a,id:'b',text:'b'};
+ const tiny={sections:[{key:'sim'},{key:'goal'}],pools:{sim:[a],goal:[b],event:[]},packs:{base:{}},footers:['ok']};
+ assert.throws(()=>SimsGenerator.createEngine(tiny,rng).generate(0,{packs:[],locked:{goal:b}}), /No matching story/);
+});

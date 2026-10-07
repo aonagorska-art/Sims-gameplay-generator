@@ -5,3 +5,11 @@ DEPLOYMENT.md
 TESTING.md
 .env
 .env.*
+
+# Local credentials, private keys, and history backups
+*.pem
+*.key
+*.p12
+*.pfx
+*.bundle
+*.log

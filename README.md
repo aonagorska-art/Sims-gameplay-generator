@@ -28,6 +28,9 @@ Built with vanilla HTML, CSS, and JavaScript. No backend, accounts, or installat
 
 ## Features
 
+- Select owned packs, search the collection, or play with Base Game only. Selections stay in this browser.
+- Keep any of the eight story cards and reroll the rest, without repeating their themes.
+- Pack filters apply to stories, events, and extra disasters; cross-pack ideas require every listed pack.
 - 278 new ideas covering 21 Expansion Packs, 12 Game Packs and 20 Stuff Packs.
 - A concrete Sims 4 reference and pack label under every prompt.
 - Three modes, from Just Vibing to Remove the Pool Ladder.
