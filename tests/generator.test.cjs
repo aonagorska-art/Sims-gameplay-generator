@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 global.window = global;
 require('../data.js');
+require('../content-pl.js');
+require('../i18n.js');
 require('../generator.js');
 const data = SIMS_DATA;
 let seed = 123456;
@@ -165,4 +167,61 @@ test('an impossible constrained story reports a recoverable error', () => {
  const b={...a,id:'b',text:'b'};
  const tiny={sections:[{key:'sim'},{key:'goal'}],pools:{sim:[a],goal:[b],event:[]},packs:{base:{}},footers:['ok']};
  assert.throws(()=>SimsGenerator.createEngine(tiny,rng).generate(0,{packs:[],locked:{goal:b}}), /No matching story/);
+});
+
+test('Polish covers all prompts, packs, modes, sections and footers without English fallback', () => {
+ const pl = SimsI18n.createView(data, 'pl');
+ const items = Object.values(data.pools).flat();
+ assert.deepEqual(Object.keys(SIMS_PL.prompts).sort(), items.map(item => item.id).sort());
+ assert.deepEqual(Object.keys(SIMS_PL.packs).sort(), Object.keys(data.packs).sort());
+ for (const item of items) {
+  const translated = pl.prompt(item);
+  assert.ok(typeof translated === 'string' && translated.length > 15, item.id);
+  assert.notEqual(translated, item.text, item.id);
+  assert.ok(translated.length <= 160, item.id + ': keep translated prompts concise');
+ }
+ for (const id of Object.keys(data.packs)) assert.ok(pl.pack(id)?.length > 3, id);
+ assert.equal(SIMS_PL.footers.length, data.footers.length);
+ for (const footer of data.footers) assert.ok(pl.footer(footer)?.length > 5);
+ for (const section of data.sections) assert.ok(pl.section(section.key)?.length > 3);
+ for (let mode = 0; mode < 3; mode++) assert.ok(pl.mode(mode)?.length > 3);
+});
+
+test('UI translations have matching keys, placeholders, and valid HTML bindings', () => {
+ const { en, pl } = SimsI18n.messages;
+ assert.deepEqual(Object.keys(pl).sort(), Object.keys(en).sort());
+ const slots = value => [...value.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+ for (const key of Object.keys(en)) {
+  assert.ok(pl[key].trim(), key);
+  assert.deepEqual(slots(pl[key]), slots(en[key]), key);
+ }
+ const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+ for (const match of html.matchAll(/data-i18n="([^"]+)"/g)) assert.ok(en[match[1]] && pl[match[1]], match[1]);
+ assert.equal(SimsI18n.createView(data, 'unsupported').lang, 'en');
+});
+
+test('switching copy language preserves the story and translates events, disasters and requirements', () => {
+ const engine = SimsGenerator.createEngine(data, rng);
+ const save = engine.generate(2);
+ save.event = data.pools.goal.find(item => item.id === 'pack-university-goal');
+ save.disasters = [{ ...data.pools.goal.find(item => item.id === 'pack-paranormal-goal'), event: data.pools.goal.find(item => item.id === 'pack-crystal-goal') }];
+ const original = JSON.stringify(save);
+ const en = SimsGenerator.formatChallenge(data, save, 'en');
+ const pl = SimsGenerator.formatChallenge(data, save, 'pl');
+ const all = [...Object.values(save.items), save.event, save.disasters[0], save.disasters[0].event];
+ for (const item of all) { assert.ok(en.includes(item.text)); assert.ok(pl.includes(SIMS_PL.prompts[item.id])); }
+ for (const label of ['Uniwersytet · Dodatek', 'Zjawiska paranormalne · Akcesoria', 'Kryształowe cudeńka · Akcesoria', 'TYMCZASEM', 'GŁÓWNY CEL']) assert.ok(pl.includes(label), label);
+ assert.ok(pl.includes(SIMS_PL.footers[data.footers.indexOf(save.footer)]));
+ assert.doesNotMatch(pl, /undefined|Expansion Pack|Stuff Pack|HOUSEHOLD/);
+ assert.equal(JSON.stringify(save), original);
+ assert.equal(SimsGenerator.formatChallenge(data, save, 'en'), en);
+});
+
+test('recoverable generation errors have localized messages', () => {
+ const engine = SimsGenerator.createEngine(data, rng);
+ let error;
+ try { engine.generate(99); } catch (caught) { error = caught; }
+ assert.equal(error.code, 'UNKNOWN_MODE');
+ assert.equal(SimsI18n.createView(data, 'pl').error(error), 'Nieznany poziom chaosu.');
+ for (const code of ['INVALID_LOCK', 'NO_STORY']) assert.ok(/[ąćęłńóśźż]/.test(SimsI18n.createView(data, 'pl').error({ code })));
 });

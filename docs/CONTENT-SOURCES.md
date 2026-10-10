@@ -32,3 +32,7 @@ The linked product pages were consulted for pack types and their gameplay featur
 - [Dine Out tips](https://www.ea.com/games/the-sims/the-sims-4/news/sims-4-dine-out-tips): restaurant ownership and hired chefs.
 
 All challenge wording is original. No official images or game assets were added.
+
+## Polish localization
+
+Polish pack names were checked against EA’s [Expansion Packs](https://www.ea.com/pl/games/the-sims/the-sims-4/store/categories/expansion-packs), [Game Packs](https://www.ea.com/pl/games/the-sims/the-sims-4/store/categories/game-packs), and [Stuff Packs](https://www.ea.com/pl/games/the-sims/the-sims-4/store/categories/stuff-packs) catalogues on October 10, 2026. The Polish story prompts are original translations; proper names without a Polish equivalent remain unchanged. Localization only changes presentation, leaving pack requirements, difficulty, and duplicate prevention intact.

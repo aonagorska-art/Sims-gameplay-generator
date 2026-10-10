@@ -1,6 +1,11 @@
 /* Pure generation logic, also usable from the Node test runner. */
 (function (root) {
   'use strict';
+  function generationError(message, code) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+  }
   function compatible(item, chosen) {
     return chosen.every(other =>
       (!item.id || item.id !== other.id) &&
@@ -25,7 +30,7 @@
       return candidates.find((item, i) => (roll -= weights[i]) < 0) || candidates[candidates.length - 1];
     }
     function generate(mode, options = {}) {
-      if (![0, 1, 2].includes(mode)) throw new Error('Unknown chaos level.');
+      if (![0, 1, 2].includes(mode)) throw generationError('Unknown chaos level.', 'UNKNOWN_MODE');
       const packs = [...new Set(['base', ...(options.packs ?? Object.keys(data.packs))])];
       const locked = options.locked || {};
       const kept = {};
@@ -34,7 +39,7 @@
         if (!data.sections.some(section => section.key === key) || !canonical ||
             canonical.tier > mode || !ownsPacks(canonical, packs) ||
             !compatible(canonical, Object.values(kept))) {
-          throw new Error('A kept idea no longer fits your settings. Release it and try again.');
+          throw generationError('A kept idea no longer fits your settings. Release it and try again.', 'INVALID_LOCK');
         }
         kept[key] = canonical;
       }
@@ -58,7 +63,7 @@
         previous = scenario;
         return scenario;
       }
-      throw new Error('No matching story found. Release a kept idea or select more packs.');
+      throw generationError('No matching story found. Release a kept idea or select more packs.', 'NO_STORY');
     }
     function addDisaster(scenario) {
       const chosen = [...Object.values(scenario.items), scenario.event,
@@ -72,16 +77,15 @@
     }
     return { generate, addDisaster };
   }
-  function formatChallenge(data, scenario) {
-    const describe = item => item.text + '\n' + item.packs.map(id => {
-      const pack = data.packs[id];
-      return pack.name + (id === 'base' ? '' : ' · ' + pack.type);
-    }).join(' + ');
-    const parts = ['SIMS GAMEPLAY GENERATOR', '\nMODE: ' + data.modes[scenario.mode]];
-    data.sections.forEach(section => parts.push('\n' + section.icon + ' ' + section.label + '\n' + describe(scenario.items[section.key])));
-    if (scenario.event) parts.push('\nMEANWHILE…\n' + describe(scenario.event));
-    scenario.disasters.forEach((item, i) => parts.push('\n🚨 NEW PROBLEM UNLOCKED #' + (i + 1) + '\n' + describe(item) + (item.event ? '\nMeanwhile: ' + describe(item.event) : '')));
-    parts.push('\n' + scenario.footer);
+  function formatChallenge(data, scenario, language = 'en') {
+    const view = root.SimsI18n.createView(data, language);
+    const describe = item => view.prompt(item) + '\n' + item.packs.map(view.pack).join(' + ');
+    const parts = [view.t('pageTitle').toLocaleUpperCase(view.lang), '\n' + view.t('modeLabel') + ': ' + view.mode(scenario.mode)];
+    data.sections.forEach(section => parts.push('\n' + section.icon + ' ' + view.section(section.key) + '\n' + describe(scenario.items[section.key])));
+    if (scenario.event) parts.push('\n' + view.t('meanwhile') + '\n' + describe(scenario.event));
+    scenario.disasters.forEach((item, i) => parts.push('\n' + view.t('newProblem', { number: i + 1 }) + '\n' + describe(item) +
+      (item.event ? '\n' + view.t('meanwhile') + ' ' + describe(item.event) : '')));
+    parts.push('\n' + view.footer(scenario.footer));
     return parts.join('\n');
   }
   root.SimsGenerator = { createEngine, formatChallenge, compatible, ownsPacks };

@@ -1,6 +1,6 @@
-# Sims Gameplay Generator 
+# Sims Gameplay Generator
 
-This was made to help me generate cool storylines for my Sims. 
+This was made to help me generate cool storylines for my Sims.
 
 [Sims gameplay generator](https://sims-gameplay-generator.netlify.app/)
 
@@ -28,6 +28,8 @@ Built with vanilla HTML, CSS, and JavaScript. No backend, accounts, or installat
 
 ## Features
 
+- Switch between English and Polish, including all 660 prompts, pack names, messages, and copied challenges. The language stays in this browser, and switching preserves your story and kept cards.
+
 - Select owned packs, search the collection, or play with Base Game only. Selections stay in this browser.
 - Keep any of the eight story cards and reroll the rest, without repeating their themes.
 - Pack filters apply to stories, events, and extra disasters; cross-pack ideas require every listed pack.
@@ -51,6 +53,8 @@ Upload the project folder to Netlify, or import the repository with an empty bui
 ## Project structure
 
 - `data.js` — prompt pools, difficulty tiers, themes, and pack requirements.
+- `content-pl.js` — Polish prompts and game terminology, mapped by stable IDs.
+- `i18n.js` — interface translations and language-aware formatting.
 - `generator.js` — weighted selection and repeat prevention.
 - `script.js` — page interactions and clipboard support.
 - `styles.css` and `index.html` — the interface.
@@ -61,4 +65,4 @@ Run tests with `node --test tests/generator.test.cjs`.
 
 Some ideas require packs, listed beneath each prompt and included in copied challenges. Kits and Marketplace content are outside this catalogue. See [content notes and official sources](docs/CONTENT-SOURCES.md). If a named Sim is unavailable, choose a similar Townie. Shared themes are curated metadata rather than a complete simulation of every possible game state.
 
-Not affiliated with or endorsed by Electronic Arts or The Sims. 
+This project is not endorsed by or affiliated with EA or its licensors. The Sims and related names and marks belong to their respective owners. References identify the game and its packs; no ownership of those names, characters, or marks is claimed. See [EA’s content policy](https://help.ea.com/en/articles/security-and-rules/ea-content-policy/).
